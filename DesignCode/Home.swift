@@ -21,6 +21,7 @@ struct Home: View {
 				.edgesIgnoringSafeArea(.all)
 			
 			
+			// VISIBLE HOME SCREEN
 			HomeView(showProfile: $showProfile)
 			.padding(.top, 44)
 			.background(Color.white)
@@ -38,9 +39,7 @@ struct Home: View {
 			
 			
 			
-			
-			
-			
+			// HIDDEN MENU
 			MenuView()
 				.background(Color.black.opacity(0.001))
 				.offset(y: showProfile ? 0 : SCREEN_SIZE.height)
