@@ -16,6 +16,11 @@ struct TabBar: View {
 					Image(systemName: "house")
 					Text("Home")
 				}
+			ContentView().tabItem {
+				Image(systemName: "rectangle.stack.fill")
+				Text("Certificates")
+			}
+			
 		}
 		.edgesIgnoringSafeArea(.top)
     }
@@ -23,6 +28,10 @@ struct TabBar: View {
 
 struct TabBar_Previews: PreviewProvider {
     static var previews: some View {
-        TabBar()
+		Group {
+			TabBar().previewDevice("iPhone 12")
+			TabBar().previewDevice("iPhone 8")
+		}
+
     }
 }
