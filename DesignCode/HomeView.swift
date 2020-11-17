@@ -12,69 +12,88 @@ struct HomeView: View {
 	
 	@Binding var showProfile: Bool
 	@State var showupdate = false
+	@Binding var showContent: Bool
+	
 	
 	var body: some View {
-		VStack {
-			HStack {
-				Text("Watching")
-					.modifier(CustomFontModifier(type: "Bold", size: 28))
-				
-				Spacer()
-				AvatarView(showProfile: $showProfile)
-				
-				Button(action: {self.showupdate.toggle()}) {
-					Image(systemName: "bell")
-						.renderingMode(.original)
-						.font(.system(size: 16, weight: .medium))
-						.frame(width: 36, height: 36)
-						.background(Color.white)
-						.clipShape(Circle())
-						.shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
-						.shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 10)
-				}
-				.sheet(isPresented: $showupdate) {
-					UpdateList()
-				}
-			}
-			.padding(.horizontal)
-			.padding(.leading, 14)
-			.padding(.top, 30)
-			.padding(.bottom, 10)
-			
-			
-			ScrollView(.horizontal, showsIndicators: false) {
-				WatchRingsView()
-					.padding(.horizontal, 30)
-					.padding(.bottom, 30)
-			}
-			
-			
-			ScrollView(.horizontal, showsIndicators: false) {
-				HStack(spacing: 20) {
-					ForEach(sectionData) { item in
-						GeometryReader { geometry in
-							SectionView(section: item)
-								.rotation3DEffect(
-									Angle(degrees: Double(geometry.frame(in: .global).minX - 30) / -20),
-									axis: (x: 0, y: 10, z: 0)
-								)
-						}
-						.frame(width: 275, height: 275)
+		ScrollView {
+			VStack {
+				HStack {
+					Text("Watching")
+						.modifier(CustomFontModifier(type: "Bold", size: 28))
+					
+					Spacer()
+					AvatarView(showProfile: $showProfile)
+					
+					Button(action: {self.showupdate.toggle()}) {
+						Image(systemName: "bell")
+							.renderingMode(.original)
+							.font(.system(size: 16, weight: .medium))
+							.frame(width: 36, height: 36)
+							.background(Color.white)
+							.clipShape(Circle())
+							.shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+							.shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 10)
+					}
+					.sheet(isPresented: $showupdate) {
+						UpdateList()
 					}
 				}
-				.padding(30)
-				.padding(.bottom, 30)
+				.padding(.horizontal)
+				.padding(.leading, 14)
+				.padding(.top, 30)
+				.padding(.bottom, 10)
+				
+				
+				ScrollView(.horizontal, showsIndicators: false) {
+					WatchRingsView()
+						.padding(.horizontal, 30)
+						.padding(.bottom, 30)
+						.onTapGesture {
+							self.showContent = true
+						}
+				}
+				
+				
+				ScrollView(.horizontal, showsIndicators: false) {
+					HStack(spacing: 20) {
+						ForEach(sectionData) { item in
+							GeometryReader { geometry in
+								SectionView(section: item)
+									.rotation3DEffect(
+										Angle(degrees: Double(geometry.frame(in: .global).minX - 30) / -20),
+										axis: (x: 0, y: 10, z: 0)
+									)
+							}
+							.frame(width: 275, height: 275)
+						}
+					}
+					.padding(30)
+					.padding(.bottom, 30)
+				}
+				.offset(y: -30)
+				
+				
+				HStack {
+					Text("Courses")
+						.font(.title).bold()
+					Spacer()
+				}
+				.padding(.leading, 30)
+				.offset(y: -60)
+				
+				SectionView(section: sectionData[2], width: SCREEN_SIZE.width - 60, height: 267)
+					.offset(y: -60)
+				
+				Spacer()
 			}
-			.offset(y: -30)
-			
-			Spacer()
 		}
 	}
 }
 
 struct HomeView_Previews: PreviewProvider {
 	static var previews: some View {
-		HomeView(showProfile: .constant(false))
+		HomeView(showProfile: .constant(false), showContent: .constant(false))
 	}
 }
 
@@ -84,6 +103,8 @@ struct HomeView_Previews: PreviewProvider {
 struct SectionView: View {
 	
 	var section: Section
+	var width: CGFloat = 275
+	var height: CGFloat = 275
 	
 	var body: some View {
 		VStack {
@@ -106,7 +127,7 @@ struct SectionView: View {
 		}
 		.padding(.top, 20)
 		.padding(.horizontal, 20)
-		.frame(width: 275, height: 275)
+		.frame(width: width, height: height)
 		.background(section.color)
 		.cornerRadius(30)
 		.shadow(color: section.color.opacity(0.5), radius: 20, x: 0, y: 20)
