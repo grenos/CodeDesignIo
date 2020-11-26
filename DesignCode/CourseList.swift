@@ -12,11 +12,13 @@ struct CourseList: View {
 	
 	@State var courses = courseData
 	@State var active = false
+	@State var activeIndex = -1
+	@State var activeView = CGSize.zero
 	
-    var body: some View {
+	var body: some View {
 		
 		ZStack {
-			Color.black.opacity(active ? 0.5 : 0)
+			Color.black.opacity(Double(activeView.height / 500))
 				.animation(.linear)
 				.edgesIgnoringSafeArea(.all)
 			
@@ -31,8 +33,17 @@ struct CourseList: View {
 					
 					ForEach(courses.indices, id: \.self) { index in
 						GeometryReader { geometry in
-							CourseView(show: $courses[index].show, course: courses[index], active: $active)
-								.offset(y: courses[index].show ? -geometry.frame(in: .global).minY : 0)
+							CourseView(show: $courses[index].show,
+									   course: courses[index],
+									   active: $active,
+									   index: index,
+									   activeIndex: $activeIndex,
+									   activeView: $activeView
+							)
+							.offset(y: courses[index].show ? -geometry.frame(in: .global).minY : 0)
+							.opacity(activeIndex != index && self.active ? 0 : 1)
+							.scaleEffect(activeIndex != index && self.active ? 0.5 : 1)
+							.offset(x: activeIndex != index && self.active ? SCREEN_SIZE.width : 0)
 						}
 						.frame(height: 280)
 						.frame(maxWidth: courses[index].show ? .infinity : SCREEN_SIZE.width - 60)
@@ -44,13 +55,13 @@ struct CourseList: View {
 			}
 			.animation(.linear)
 		}
-    }
+	}
 }
 
 struct CourseList_Previews: PreviewProvider {
-    static var previews: some View {
-        CourseList()
-    }
+	static var previews: some View {
+		CourseList()
+	}
 }
 
 
@@ -64,6 +75,10 @@ struct CourseView: View {
 	var course: Course
 	
 	@Binding var active: Bool
+	var index: Int
+	@Binding var activeIndex: Int
+	
+	@Binding var activeView: CGSize
 	
 	var body: some View {
 		ZStack(alignment: .top) {
@@ -76,7 +91,7 @@ struct CourseView: View {
 				Text("This course is unlike any other. We care about design and want to make sure that you get better at it in the process. It was written for designers and developers who are passionate about collaborating and building real apps for iOS and macOS. While it's not one codebase for all apps, you learn once and can apply the techniques and controls to all platforms with incredible quality, consistency and performance. It's beginner-friendly, but it's also packed with design tricks and efficient workflows for building great user interfaces and interactions.")
 				
 				Text("This course is unlike any other. We care about design and want to make sure that you get better at it in the process. It was written for designers and developers who are passionate about collaborating and building real apps for iOS and macOS. While it's not one codebase for all apps, you learn once and can apply the techniques and controls to all platforms with incredible quality, consistency and performance. It's beginner-friendly, but it's also packed with design tricks and efficient workflows for building great user interfaces and interactions.")
-					
+				
 			}
 			.padding(30)
 			.frame(maxWidth: show ? .infinity : SCREEN_SIZE.width - 60, maxHeight: show ? .infinity : 280, alignment: .top )
@@ -120,18 +135,53 @@ struct CourseView: View {
 			}
 			.padding(show ? 30 : 20)
 			.padding(.top, show ? 30 : 0)
-	//		.frame(width: show ? SCREEN_SIZE.width : SCREEN_SIZE.width - 60, height: show ? SCREEN_SIZE.height : 280)
+			//		.frame(width: show ? SCREEN_SIZE.width : SCREEN_SIZE.width - 60, height: show ? SCREEN_SIZE.height : 280)
 			.frame(maxWidth: show ? .infinity : SCREEN_SIZE.width - 60, maxHeight: show ? 460 : 280)
 			.background(Color(course.color))
 			.clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
 			.shadow(color: Color(course.color).opacity(0.3), radius: 20, x: 0, y: 20)
+			.gesture(
+				show ?
+				DragGesture()
+					.onChanged({ value in
+						guard value.translation.height < 300 else { return }
+						guard value.translation.height > 0 else { return }
+						self.activeView = value.translation
+					})
+					.onEnded({ value in
+						if self.activeView.height > 50 {
+							self.show = false
+							self.active = false
+							self.activeIndex = -1
+						}
+						self.activeView = .zero
+					})
+				: nil
+			)
 			.onTapGesture {
 				self.show.toggle()
 				self.active.toggle()
+				if self.show {
+					self.activeIndex = self.index
+				}
+				else {
+					self.activeIndex = -1
+				}
 			}
-
+			
+			/*
+				bad workaround 
+			*/
+//			if show {
+//				CourseDetail(course: course, show: $show, active: $active, activeIndex: $activeIndex)
+//					.background(Color.white)
+//					.animation(nil)
+//			}
+			
 		}
 		.frame(height: show ? SCREEN_SIZE.height : 280)
+		.scaleEffect(1 - self.activeView.height / 1000)
+		.rotation3DEffect(Angle(degrees: Double(self.activeView.height / 10)), axis: (x: 0, y: 10.0, z: 0))
 		.animation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0))
 		.edgesIgnoringSafeArea(.all)
 	}
